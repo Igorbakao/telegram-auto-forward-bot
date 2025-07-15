@@ -30,9 +30,7 @@ async def handle_schedule(msg: Message):
         send_time = datetime.now() + timedelta(minutes=minutes)
         scheduled_messages[chat_id] = {"text": content, "time": send_time}
 
-        await msg.answer(f"✅ Mensagem agendada para {send_time.strftime('%H:%M:%S')}:
-
-{content}")
+        await msg.answer(f"✅ Mensagem agendada para {send_time.strftime('%H:%M:%S')}:\n\n{content}")
     except Exception as e:
         await msg.answer("❌ Erro ao agendar. Use: /set <minutos> <mensagem>")
 
@@ -49,8 +47,8 @@ async def message_scheduler():
         await asyncio.sleep(5)
 
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True)  # remove webhook ativo
-    asyncio.create_task(message_scheduler())             # inicia o agendador
+    await bot.delete_webhook(drop_pending_updates=True)
+    asyncio.create_task(message_scheduler())
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
