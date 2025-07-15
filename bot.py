@@ -5,8 +5,7 @@ from aiogram.types import Message
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
-
-API_TOKEN = "7333293017:AAEvU3Wv8P3vvQKIcktR9vcZr04f-BKzB5M"
+from config import API_TOKEN
 
 bot = Bot(
     token=API_TOKEN,
@@ -31,7 +30,9 @@ async def handle_schedule(msg: Message):
         send_time = datetime.now() + timedelta(minutes=minutes)
         scheduled_messages[chat_id] = {"text": content, "time": send_time}
 
-        await msg.answer(f"✅ Mensagem agendada para {send_time.strftime('%H:%M:%S')}:\n\n{content}")
+        await msg.answer(f"✅ Mensagem agendada para {send_time.strftime('%H:%M:%S')}:
+
+{content}")
     except Exception as e:
         await msg.answer("❌ Erro ao agendar. Use: /set <minutos> <mensagem>")
 
