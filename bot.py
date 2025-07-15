@@ -32,7 +32,7 @@ Use:
 - /add Your message
 - /interval Number (minutes)
 
-Then tap the buttons below:"" ",
+Then tap the buttons below:""",
         reply_markup=control_keyboard()
     )
 
