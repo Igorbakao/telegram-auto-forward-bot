@@ -3,7 +3,6 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.token import TokenValidationError
 from config import TOKEN
 
@@ -29,8 +28,8 @@ async def cmd_start(msg: Message):
         """Welcome! This bot sends a message automatically at the interval you choose.
 
 Use:
-- /add Your message
-- /interval Number (minutes)
+/add Your message
+/interval Number (minutes)
 
 Then tap the buttons below:""",
         reply_markup=control_keyboard()
@@ -41,8 +40,8 @@ async def cmd_add(msg: Message):
     global message_to_send
     text = msg.text.split(' ', 1)
     if len(text) < 2:
-        await msg.answer("Use the command like this:
-<code>/add Your message here</code>")
+        await msg.answer("""Use the command like this:
+/add Your message here""")
     else:
         message_to_send = text[1]
         await msg.answer(f"✅ Message set:
@@ -54,8 +53,8 @@ async def cmd_interval(msg: Message):
     global send_interval
     text = msg.text.split()
     if len(text) < 2 or not text[1].isdigit():
-        await msg.answer("Use the command like this:
-<code>/interval 10</code>")
+        await msg.answer("""Use the command like this:
+/interval 10""")
     else:
         send_interval = int(text[1]) * 60
         await msg.answer(f"✅ Interval set to {text[1]} minutes.")
