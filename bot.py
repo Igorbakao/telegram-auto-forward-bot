@@ -44,9 +44,9 @@ async def cmd_add(msg: Message):
 /add Your message here""")
     else:
         message_to_send = text[1]
-        await msg.answer(f"✅ Message set:
+        await msg.answer(f"""✅ Message set:
 
-{message_to_send}")
+{message_to_send}""")
 
 @dp.message(Command("interval"))
 async def cmd_interval(msg: Message):
