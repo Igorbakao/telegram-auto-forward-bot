@@ -1,93 +1,57 @@
 import asyncio
-from aiogram import Bot, Dispatcher, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.enums import ParseMode
-from aiogram.filters import Command
-from aiogram.client.default import DefaultBotProperties
-from config import TOKEN
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils import executor
+from datetime import datetime, timedelta
 
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
+API_TOKEN = 'SEU_TOKEN_AQUI'
 
-message_to_send = ""
-send_interval = 60
-is_running = False
-task = None
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
 
-def control_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="▶ Start", callback_data="start"),
-         InlineKeyboardButton(text="⏹ Stop", callback_data="stop")]
-    ])
+# Remove qualquer webhook antes de começar
+async def on_startup(dp):
+    await bot.delete_webhook()
 
-@dp.message(Command("start"))
-async def cmd_start(msg: Message):
-    await msg.answer(
-        """Welcome! This bot sends a message automatically at the interval you choose.
+scheduled_messages = {}
 
-Use:
-/add Your message
-/interval Number (minutes)
+@dp.message_handler(commands=['start'])
+async def start_handler(msg: types.Message):
+    await msg.answer("👋 Olá! Use /set para agendar uma mensagem.")
 
-Then tap the buttons below:""",
-        reply_markup=control_keyboard()
-    )
+@dp.message_handler(commands=['set'])
+async def set_handler(msg: types.Message):
+    await msg.answer("Use o comando assim:\n/set 10 Olá grupo!")
 
-@dp.message(Command("add"))
-async def cmd_add(msg: Message):
-    global message_to_send
-    parts = msg.text.split(' ', 1)
-    if len(parts) < 2:
-        await msg.answer("""Use the command like this:
-/add Your message here""")
-    else:
-        message_to_send = parts[1]
-        await msg.answer(f"""✅ Message set:
+@dp.message_handler(lambda msg: msg.text.startswith('/set '))
+async def handle_schedule(msg: types.Message):
+    try:
+        parts = msg.text.split(maxsplit=2)
+        minutes = int(parts[1])
+        content = parts[2]
+        chat_id = msg.chat.id
 
-{message_to_send}""")
+        now = datetime.now()
+        send_time = now + timedelta(minutes=minutes)
+        scheduled_messages[chat_id] = {'text': content, 'time': send_time}
 
-@dp.message(Command("interval"))
-async def cmd_interval(msg: Message):
-    global send_interval
-    parts = msg.text.split()
-    if len(parts) < 2 or not parts[1].isdigit():
-        await msg.answer("""Use the command like this:
-/interval 10""")
-    else:
-        send_interval = int(parts[1]) * 60
-        await msg.answer(f"✅ Interval set to {parts[1]} minutes.")
+        await msg.answer(f"✅ Mensagem agendada para {send_time.strftime('%H:%M:%S')}:\n\n{content}")
+    except Exception as e:
+        await msg.answer("❌ Erro ao agendar a mensagem. Use: /set <minutos> <mensagem>")
 
-@dp.callback_query(F.data == "start")
-async def cb_start(callback: CallbackQuery):
-    global is_running, task
-    if not message_to_send:
-        await callback.answer("Set a message first using /add.", show_alert=True)
-        return
-    if is_running:
-        await callback.answer("Already running.", show_alert=True)
-        return
+async def message_scheduler():
+    while True:
+        now = datetime.now()
+        for chat_id, data in list(scheduled_messages.items()):
+            if now >= data['time']:
+                try:
+                    await bot.send_message(chat_id, data['text'])
+                    del scheduled_messages[chat_id]
+                except Exception as e:
+                    print(f"Erro ao enviar mensagem: {e}")
+        await asyncio.sleep(5)
 
-    is_running = True
-    await callback.answer("🚀 Started!")
-
-    async def sending_loop():
-        while is_running:
-            await bot.send_message(callback.message.chat.id, message_to_send)
-            await asyncio.sleep(send_interval)
-
-    task = asyncio.create_task(sending_loop())
-
-@dp.callback_query(F.data == "stop")
-async def cb_stop(callback: CallbackQuery):
-    global is_running, task
-    is_running = False
-    if task:
-        task.cancel()
-        task = None
-    await callback.answer("🛑 Stopped.")
-
-async def main():
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.create_task(message_scheduler())
+    executor.start_polling(dp, on_startup=on_startup)
