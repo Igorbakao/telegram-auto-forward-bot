@@ -6,7 +6,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
 
-API_TOKEN = "SEU_TOKEN_AQUI"
+API_TOKEN = "7333293017:AAEvU3Wv8P3vvQKIcktR9vcZr04f-BKzB5M"
 
 bot = Bot(
     token=API_TOKEN,
@@ -48,7 +48,7 @@ async def message_scheduler():
         await asyncio.sleep(5)
 
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True)  # remove o webhook e evita conflitos
+    await bot.delete_webhook(drop_pending_updates=True)  # remove webhook ativo
     asyncio.create_task(message_scheduler())             # inicia o agendador
     await dp.start_polling(bot)
 
