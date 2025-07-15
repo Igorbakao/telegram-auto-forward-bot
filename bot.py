@@ -3,24 +3,22 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.utils.token import TokenValidationError
+from aiogram.client.default import DefaultBotProperties
 from config import TOKEN
 
-bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 message_to_send = ""
-send_interval = 60  # in seconds
+send_interval = 60
 is_running = False
-task = None  # for loop control
+task = None
 
-# Create inline keyboard
 def control_keyboard():
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="▶ Start", callback_data="start"),
          InlineKeyboardButton(text="⏹ Stop", callback_data="stop")]
     ])
-    return keyboard
 
 @dp.message(Command("start"))
 async def cmd_start(msg: Message):
@@ -38,12 +36,12 @@ Then tap the buttons below:""",
 @dp.message(Command("add"))
 async def cmd_add(msg: Message):
     global message_to_send
-    text = msg.text.split(' ', 1)
-    if len(text) < 2:
+    parts = msg.text.split(' ', 1)
+    if len(parts) < 2:
         await msg.answer("""Use the command like this:
 /add Your message here""")
     else:
-        message_to_send = text[1]
+        message_to_send = parts[1]
         await msg.answer(f"""✅ Message set:
 
 {message_to_send}""")
@@ -51,13 +49,13 @@ async def cmd_add(msg: Message):
 @dp.message(Command("interval"))
 async def cmd_interval(msg: Message):
     global send_interval
-    text = msg.text.split()
-    if len(text) < 2 or not text[1].isdigit():
+    parts = msg.text.split()
+    if len(parts) < 2 or not parts[1].isdigit():
         await msg.answer("""Use the command like this:
 /interval 10""")
     else:
-        send_interval = int(text[1]) * 60
-        await msg.answer(f"✅ Interval set to {text[1]} minutes.")
+        send_interval = int(parts[1]) * 60
+        await msg.answer(f"✅ Interval set to {parts[1]} minutes.")
 
 @dp.callback_query(F.data == "start")
 async def cb_start(callback: CallbackQuery):
