@@ -26,13 +26,13 @@ def control_keyboard():
 @dp.message(Command("start"))
 async def cmd_start(msg: Message):
     await msg.answer(
-        "Welcome! This bot sends a message automatically at the interval you choose.
+        """Welcome! This bot sends a message automatically at the interval you choose.
 
 Use:
 - /add Your message
 - /interval Number (minutes)
 
-Then tap the buttons below:",
+Then tap the buttons below:"" ",
         reply_markup=control_keyboard()
     )
 
